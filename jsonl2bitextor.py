@@ -5,6 +5,7 @@ import dateutil.parser
 import gzip
 import os
 import tldextract
+import json_lines
 
 oparser = argparse.ArgumentParser(
     description="Tool that transforms a JSON file containing news pieces with some metadata to the pre-processing format used in Bitextor")
@@ -17,34 +18,49 @@ oparser.add_argument("-o", "--output-path", help="Output path where the preproce
 
 options = oparser.parse_args()
 
-try:
-    os.mkdir(options.opath+"/preprocess")
-except FileExistsError:
-    pass
-
 urlprefixdomain = tldextract.extract(options.urlprefix).domain
+urlprefixtld = tldextract.extract(options.urlprefix).suffix
 
 try:
-    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain)
+    os.mkdir(options.opath+"/permanent")
+except FileExistsError:
+    pass
+
+hosts_file=gzip.open(options.opath+"/permanent/hosts.gz", "w")
+hosts_file.write((urlprefixdomain+"."+urlprefixtld+"\n").encode("utf-8"))
+hosts_file.close()
+
+try:
+    os.mkdir(options.opath+"/preprocessing_data")
 except FileExistsError:
     pass
 
 try:
-    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p")
+    os.mkdir(options.opath+"/preprocessing_data/preprocess")
 except FileExistsError:
     pass
 
 try:
-    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang")
+    os.mkdir(options.opath+"/preprocessing_data/preprocess/"+urlprefixdomain)
 except FileExistsError:
     pass
 
 try:
-    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang)
+    os.mkdir(options.opath+"/preprocessing_data/preprocess/"+urlprefixdomain+"/w2p")
 except FileExistsError:
     pass
 
-outputpath = options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang
+try:
+    os.mkdir(options.opath+"/preprocessing_data/preprocess/"+urlprefixdomain+"/w2p/bitextorlang")
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir(options.opath+"/preprocessing_data/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang)
+except FileExistsError:
+    pass
+
+outputpath = options.opath+"/preprocessing_data/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang
 
 json_file=gzip.open(options.newsfile, "rb")
 with lzma.open(outputpath+"/url.xz", 'w') as urlfile, lzma.open(outputpath+"/plain_text.xz", 'w') as bodyfile, lzma.open(outputpath+"/date.xz", 'w') as datefile:
