@@ -1,10 +1,10 @@
-import sys
-import json_lines
 import base64
 import argparse
 import lzma
 import dateutil.parser
 import gzip
+import os
+import tldextract
 
 oparser = argparse.ArgumentParser(
     description="Tool that transforms a JSON file containing news pieces with some metadata to the pre-processing format used in Bitextor")
@@ -17,13 +17,43 @@ oparser.add_argument("-o", "--output-path", help="Output path where the preproce
 
 options = oparser.parse_args()
 
+try:
+    os.mkdir(options.opath+"/preprocess")
+except FileExistsError:
+    pass
+
+urlprefixdomain = tldextract.extract(options.urlprefix).domain
+
+try:
+    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain)
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p")
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang")
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir(options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang)
+except FileExistsError:
+    pass
+
+outputpath = options.opath+"/preprocess/"+urlprefixdomain+"/w2p/bitextorlang/"+options.lang
+
 json_file=gzip.open(options.newsfile, "rb")
-with lzma.open(options.opath+"url.xz", 'w') as urlfile, lzma.open(options.opath+"plain_text.xz", 'w') as bodyfile, lzma.open(options.opath+"date.xz", 'w') as datefile:
+with lzma.open(outputpath+"/url.xz", 'w') as urlfile, lzma.open(outputpath+"/plain_text.xz", 'w') as bodyfile, lzma.open(outputpath+"/date.xz", 'w') as datefile:
     for newspiece in json_lines.reader(json_file):
+
         body=base64.b64encode(str.encode(newspiece["headline"]+"\n"+newspiece["body"]))
         date=dateutil.parser.parse(newspiece["firstPublished"])
         url=options.urlprefix+newspiece["id"]
-            
+
         urlfile.write(str.encode(url+"\n"))
         datefile.write(str.encode("%04d%02d%02d\n" % (date.year,date.month,date.day)))
         bodyfile.write(str.encode(body.decode("utf-8")+"\n"))
