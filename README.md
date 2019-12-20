@@ -67,3 +67,7 @@ Bitextor can be run with the following command:
 /home/user/bitextor_JSON2bitextor/bitextor.sh -s config.yaml -j 4
 ```
 where `config.yaml` is the example config file and `-j` allows to define the maximum number of threads that can be used at the same time for parallelization. After running Bitextor, the resulting corpus will be stored in `/home/user/json2parallel_experiment/permanent/am-en-sent.xz`. The format of the corpus will be a TSV with 5 fields: URL1, URL2, sentence1, sentence2, bleualign_score. This corpus can be later filtered using either [Bicleaner](https://github.com/bitextor/bicleaner) or [LASER](https://github.com/facebookresearch/LASER).
+
+## Acknowledgements
+Developed by Universitat d'Alacant as part of its contribution to the [GoURMET](https://gourmet-project.eu/) project, which  received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825299.
+
